@@ -1,19 +1,115 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Block Dodger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AZURA BAY — Neon Tide</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; }
-  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  /* Read aloud, never shown: the status line screen readers announce. */
-  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :root{ --pink:#ff2e88; --cyan:#22d3ee; --amber:#ffb020; --glass:rgba(10,14,24,.72); --line:rgba(255,255,255,.14); --txt:#f2f5ff; --dim:#9aa7c2; }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ width:100%; height:100%; overflow:hidden; background:#0b1020; font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; color:var(--txt); }
+  #game{ position:fixed; inset:0; display:block; }
+  #vig{ position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, transparent 55%, rgba(5,8,18,.42) 100%); z-index:5; }
+  .panel{ background:var(--glass); border:1px solid var(--line); border-radius:12px; backdrop-filter:blur(8px); box-shadow:0 6px 24px rgba(0,0,0,.35); }
+  .hud{ position:fixed; z-index:10; pointer-events:none; }
+  #mission-card{ top:14px; left:14px; width:300px; padding:12px 14px; }
+  #mission-card b{ display:block; font-size:15px; letter-spacing:.4px; color:#fff; }
+  #mission-card span{ display:block; font-size:12.5px; line-height:1.4; color:#cfd8ef; margin-top:3px; }
+  #radio{ top:14px; left:50%; transform:translateX(-50%); padding:8px 18px; font-size:12px; letter-spacing:1px; text-align:center; }
+  #status{ top:14px; right:14px; width:272px; padding:10px 12px; text-align:right; }
+  #clock{ font-size:13px; color:var(--dim); }
+  #cash{ font-size:22px; font-weight:800; color:#fff; }
+  #wanted{ font-size:19px; letter-spacing:3px; color:var(--amber); margin:2px 0; min-height:24px; }
+  #wanted.hot{ color:#ff5b5b; }
+  #insight{ display:inline-block; font-size:10px; letter-spacing:2px; color:#ff5b5b; border:1px solid #ff5b5b; border-radius:4px; padding:2px 6px; }
+  #respect{ font-size:12px; color:var(--cyan); margin-top:2px; }
+  #patrol{ margin-top:8px; text-align:left; font-size:11px; line-height:1.55; color:#dbe4ff; }
+  #minimap-wrap{ left:14px; bottom:14px; width:172px; }
+  #minimap{ width:168px; height:168px; border-radius:50%; display:block; border:3px solid rgba(255,255,255,.25); box-shadow:0 6px 24px rgba(0,0,0,.45); }
+  #district{ text-align:center; font-size:11px; letter-spacing:2px; color:#fff; margin-top:6px; text-shadow:0 1px 4px #000; }
+  #veh{ right:14px; bottom:14px; width:262px; padding:11px 13px; text-align:right; }
+  #carname{ font-size:13px; color:var(--dim); }
+  #speed{ font-size:38px; font-weight:800; line-height:1; color:#fff; }
+  #cond{ font-size:11px; color:var(--dim); }
+  .bar{ height:7px; background:rgba(255,255,255,.12); border-radius:4px; overflow:hidden; margin-top:5px; position:relative; }
+  .bar i{ display:block; height:100%; }
+  #healthbar{ background:linear-gradient(90deg,#37e08b,#8bf5c0); }
+  #armorbar{ background:linear-gradient(90deg,#3aa7ff,#8fd0ff); }
+  #nitrobar{ background:linear-gradient(90deg,var(--pink),var(--amber)); }
+  #weapon{ font-size:13px; margin-top:7px; }
+  #dialog{ left:50%; bottom:150px; transform:translateX(-50%); width:520px; max-width:86vw; padding:11px 14px; display:none; }
+  #dialog-name{ font-size:13px; font-weight:700; }
+  #dialog-text{ font-size:13.5px; line-height:1.45; margin-top:4px; }
+  #prompt{ left:50%; top:58%; transform:translateX(-50%); padding:8px 16px; font-size:14px; display:none; }
+  #activity{ left:50%; bottom:230px; transform:translateX(-50%); width:480px; max-width:86vw; padding:10px 14px; display:none; text-align:center; }
+  #activity .bar{ height:12px; margin-top:8px; }
+  #activity .bar-fill{ display:block; height:100%; background:linear-gradient(90deg,var(--cyan),#37e08b); }
+  #activity .bar-target{ position:absolute; top:0; bottom:0; width:6px; background:#37e08b; }
+  #activity .slots{ font-size:28px; letter-spacing:8px; margin-top:6px; }
+  .overlay{ position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; background:rgba(4,6,14,.55); backdrop-filter:blur(3px); }
+  .card{ width:560px; max-width:92vw; max-height:88vh; overflow:auto; padding:28px 30px; background:rgba(9,13,26,.94); border:1px solid var(--line); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .card h1{ font-size:40px; letter-spacing:1px; line-height:1.02; }
+  .card h1 span{ color:var(--pink); }
+  .card h3{ font-size:12px; letter-spacing:3px; color:var(--cyan); margin-bottom:8px; }
+  .card p{ font-size:14px; line-height:1.55; color:#cfd8ef; margin:10px 0; }
+  .btn{ display:inline-block; pointer-events:auto; cursor:pointer; border:0; border-radius:10px; padding:12px 26px; font-size:15px; font-weight:700; color:#fff; background:linear-gradient(90deg,var(--pink),#ff6a3d); margin:8px 8px 0 0; }
+  .btn.ghost{ background:rgba(255,255,255,.1); border:1px solid var(--line); }
+  .btnrow{ margin-top:16px; }
+  .kbd{ border:1px solid var(--line); border-radius:4px; padding:1px 7px; font-size:12px; background:rgba(255,255,255,.08); }
+  #map .card{ width:860px; }
+  #map-canvas{ width:100%; height:420px; border-radius:12px; display:block; background:#0d1526; }
+  .map-row{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:13px; }
+  .map-row b{ color:var(--dim); font-weight:400; letter-spacing:1px; }
+  .map-row span{ color:#fff; font-weight:700; }
+  #shop .card{ width:620px; }
+  .shop-item{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .shop-item b{ display:block; font-size:14px; }
+  .shop-item span{ display:block; font-size:12px; color:var(--dim); margin-top:2px; }
+  .shop-item.dim{ opacity:.55; }
+  .shop-item button{ pointer-events:auto; cursor:pointer; border:0; border-radius:8px; padding:8px 16px; font-weight:700; color:#fff; background:var(--pink); white-space:nowrap; }
+  .shop-item button:disabled{ background:#334; color:#888; cursor:default; }
+  #touch{ position:fixed; inset:0; z-index:15; display:none; pointer-events:none; }
+  #joy{ position:absolute; left:26px; bottom:200px; width:120px; height:120px; border-radius:50%; border:2px solid rgba(255,255,255,.35); background:rgba(255,255,255,.06); pointer-events:auto; }
+  #stick{ position:absolute; left:38px; top:38px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.5); }
+  .tbtn{ position:absolute; right:22px; width:64px; height:64px; border-radius:50%; border:2px solid rgba(255,255,255,.4); background:rgba(10,14,24,.6); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; pointer-events:auto; }
+  #btn-fire{ bottom:210px; } #btn-jump{ bottom:130px; right:100px; } #btn-enter{ bottom:130px; } #btn-use{ bottom:290px; right:100px; } #btn-drift{ bottom:290px; }
+  @media (max-width:760px){ #mission-card{ width:210px; } #status{ width:200px; } #minimap-wrap{ display:none; } #veh{ width:200px; } #speed{ font-size:28px; } #dialog{ bottom:120px; } }
 </style>
 </head>
 <body>
-<canvas id="game" aria-label="Block Dodger: move the paddle left and right to dodge falling blocks and catch coins"></canvas>
-<p id="status" role="status" aria-live="polite"></p>
+<canvas id="game"></canvas>
+<div id="vig"></div>
+
+<div id="mission-card" class="hud panel"><b>AZURA BAY</b><span>Free roam — explore the city</span></div>
+
+<div id="radio" class="hud panel">RADIO OFF — press Q</div>
+
+<div id="status" class="hud panel"><div id="clock">DAY 1 — 08:00</div><div id="cash">$250</div><div id="wanted"></div><span id="insight"></span><div id="respect">Lv 0 Nobody</div><div id="patrol"></div></div>
+
+<div id="minimap-wrap" class="hud"><canvas id="minimap" width="168" height="168"></canvas><div id="district">SUNDIAL SQUARE</div></div>
+
+<div id="veh" class="hud panel"><div id="carname">ON FOOT</div><div id="speed">0</div><div id="cond"></div><div class="bar"><i id="healthbar" style="width:100%"></i></div><div class="bar"><i id="armorbar" style="width:0%"></i></div><div id="nitro" style="display:none"><div class="bar"><i id="nitrobar" style="width:100%"></i></div></div><div id="weapon">Pistol 12 / 60</div></div>
+
+<div id="dialog" class="hud panel"><div id="dialog-name">Lena</div><p id="dialog-text"></p></div>
+
+<div id="prompt" class="hud panel"></div>
+<div id="activity" class="hud panel"></div>
+
+<div id="title" class="overlay"><div class="card"><h3>MAKE.FUN — GTA 6 BOUNTY</h3><h1>AZURA BAY<br><span>NEON TIDE</span></h1><p>A sun-soaked coastal crime city. Five districts, six story missions, street races, police chases, a working port, casinos and a neon strip. Steal cars, build respect, outrun the law — and take the bay back from Victor Kane.</p><p><span class="kbd">W A S D</span> move / drive &nbsp; <span class="kbd">Mouse</span> aim &nbsp; <span class="kbd">F</span> enter car &nbsp; <span class="kbd">Space</span> jump / handbrake &nbsp; <span class="kbd">Shift</span> nitro &nbsp; <span class="kbd">1 2 3</span> weapons &nbsp; <span class="kbd">Q</span> radio &nbsp; <span class="kbd">M</span> map &nbsp; <span class="kbd">Esc</span> pause</p><div class="btnrow"><button class="btn" id="btn-play">PLAY</button><button class="btn ghost" id="btn-how">HOW TO PLAY</button></div></div></div>
+
+<div id="howto" class="overlay" style="display:none"><div class="card"><h3>HOW TO PLAY</h3><h1>STREET <span>SMARTS</span></h1><p><b>Missions:</b> follow the pink beacon. Finish all six to take the bay from Victor Kane. <b>Heat:</b> stealing, speeding past cops and shooting raises your wanted stars. Break line of sight to cool off. <b>Money:</b> missions, races, fishing at Pier 9, basketball at Seaglass Court, slots at the Neon Casino. <b>Garage:</b> Tideworks Customs sells tunes, nitro and repairs. <b>Gun shop:</b> Dockside Arms sells weapons and armor.</p><div class="btnrow"><button class="btn" id="btn-how-close">GOT IT</button></div></div></div>
+
+<div id="pause" class="overlay" style="display:none"><div class="card"><h3>PAUSED</h3><h1>TAKE A <span>BREATHER</span></h1><p>Progress saves automatically to this browser.</p><div class="btnrow"><button class="btn" id="btn-resume">RESUME</button><button class="btn ghost" id="btn-save">SAVE GAME</button><button class="btn ghost" id="btn-restart">RESTART</button><button class="btn ghost" id="btn-quit">SAVE &amp; TITLE</button></div></div></div>
+
+<div id="gameover" class="overlay" style="display:none"><div class="card"><h3>THE LAW CAUGHT UP</h3><h1 id="go-title">BUSTED</h1><p id="go-sub">The Azura Bay PD took you in.</p><p>Press Enter to get back on the street.</p></div></div>
+
+<div id="map" class="overlay" style="display:none"><div class="card"><h3>AZURA BAY — CITY MAP</h3><canvas id="map-canvas" width="800" height="420"></canvas><div id="map-stats" style="margin-top:12px"></div><div class="btnrow"><button class="btn" id="btn-close-map">RESUME</button></div></div></div>
+
+<div id="shop" class="overlay" style="display:none"><div class="card"><h3 id="shop-title">TIDEWORKS CUSTOMS</h3><div id="shop-cash" style="font-size:15px;margin-bottom:6px"></div><div id="shop-list"></div><div class="btnrow"><button class="btn" id="btn-close-shop">BACK TO THE STREET</button></div></div></div>
+
+<div id="touch"><div id="joy"><div id="stick"></div></div><div class="tbtn" id="btn-fire">FIRE</div><div class="tbtn" id="btn-jump">JUMP</div><div class="tbtn" id="btn-enter">ENTER</div><div class="tbtn" id="btn-use">USE</div><div class="tbtn" id="btn-drift">DRIFT</div></div>
+
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>

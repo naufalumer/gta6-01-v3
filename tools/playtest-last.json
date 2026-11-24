@@ -1,0 +1,217 @@
+{
+  "passed": 42,
+  "failed": 0,
+  "results": [
+    {
+      "name": "page loads, __azura present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "three.js scene has objects",
+      "ok": true,
+      "detail": "1129"
+    },
+    {
+      "name": "player created",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "traffic spawned (>=20)",
+      "ok": true,
+      "detail": "44"
+    },
+    {
+      "name": "pedestrians spawned (>=50)",
+      "ok": true,
+      "detail": "64"
+    },
+    {
+      "name": "parked cars present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no console errors at boot",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "game started",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "player walks (W)",
+      "ok": true,
+      "detail": "moved 5.2m"
+    },
+    {
+      "name": "jump leaves the ground or lands clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "enter parked car (F)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "car accelerates",
+      "ok": true,
+      "detail": "speed 4.9 m/s"
+    },
+    {
+      "name": "drift does not crash the car",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "car condition tracked",
+      "ok": true,
+      "detail": "cond 93.05221781600267"
+    },
+    {
+      "name": "exit car (F)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "enter parked motorcycle (F)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "motorcycle accelerates",
+      "ok": true,
+      "detail": "speed 0.0 m/s"
+    },
+    {
+      "name": "motorcycle faces its travel direction",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "exit motorcycle (F)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "wanted rises with heat",
+      "ok": true,
+      "detail": "stars 3"
+    },
+    {
+      "name": "patrol cars spawn",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "name": "mission 1 objective exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mission 1 step 1 completes at the plaza",
+      "ok": true,
+      "detail": "step 1"
+    },
+    {
+      "name": "mission 1 completes (drop + hold)",
+      "ok": true,
+      "detail": "mission 1"
+    },
+    {
+      "name": "mission payout landed",
+      "ok": true,
+      "detail": "$650"
+    },
+    {
+      "name": "race starts (mission 2)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "race: driving through gates does not error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "race gate counter advances or holds",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fishing starts at the pier (E)",
+      "ok": true,
+      "detail": "waiting"
+    },
+    {
+      "name": "basketball starts at the court (E)",
+      "ok": true,
+      "detail": "playing"
+    },
+    {
+      "name": "basketball shot resolves",
+      "ok": true,
+      "detail": "tries 1"
+    },
+    {
+      "name": "jetpack pickup",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "jetpack lifts the player",
+      "ok": true,
+      "detail": "y 0.0 -> 2.3"
+    },
+    {
+      "name": "heli boarding at the pad (F)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "heli climbs",
+      "ok": true,
+      "detail": "alt 8.8"
+    },
+    {
+      "name": "casino spin resolves",
+      "ok": true,
+      "detail": "Two match! +$120"
+    },
+    {
+      "name": "save/load restores cash",
+      "ok": true,
+      "detail": "$740 vs saved $740 (pre-spin $670)"
+    },
+    {
+      "name": "HUD fits 1024x768",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "HUD fits 1280x800",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "HUD fits 800x600",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zero console/page errors during the whole run",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zero uncaught game errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "at": "2026-11-24T04:37:40.159Z"
+}
