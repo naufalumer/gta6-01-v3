@@ -74,6 +74,28 @@
   .tbtn{ position:absolute; right:22px; width:64px; height:64px; border-radius:50%; border:2px solid rgba(255,255,255,.4); background:rgba(10,14,24,.6); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; pointer-events:auto; }
   #btn-fire{ bottom:210px; } #btn-jump{ bottom:130px; right:100px; } #btn-enter{ bottom:130px; } #btn-use{ bottom:290px; right:100px; } #btn-drift{ bottom:290px; }
   @media (max-width:760px){ #mission-card{ width:210px; } #status{ width:200px; } #minimap-wrap{ display:none; } #veh{ width:200px; } #speed{ font-size:28px; } #dialog{ bottom:120px; } }
+  /* short landscape (phone held sideways, e.g. 844x390): every panel shrinks and
+     re-clusters so nothing covers anything else — radio drops to bottom-centre,
+     touch buttons form one low row, the minimap stays visible and small */
+  @media (max-height:500px){
+    #mission-card{ width:230px; padding:8px 10px; }
+    #mission-card b{ font-size:13px; } #mission-card span{ font-size:11px; max-height:32px; overflow:hidden; }
+    #radio{ top:auto; bottom:12px; max-width:320px; font-size:11px; padding:6px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #status{ width:200px; padding:8px 10px; }
+    #cash{ font-size:18px; } #wanted{ font-size:16px; } #respect{ font-size:11px; }
+    #patrol{ max-height:34px; overflow:hidden; }
+    #minimap-wrap{ display:block !important; width:122px; }
+    #minimap{ width:118px; height:118px; } #district{ font-size:10px; }
+    #veh{ width:190px; padding:8px 10px; }
+    #speed{ font-size:26px; } #weapon{ font-size:11px; } #vehname{ font-size:11px; }
+    #dialog{ width:420px; bottom:100px; } #activity{ width:420px; bottom:170px; }
+    #prompt{ top:44%; }
+    #joy{ left:20px; bottom:180px; width:104px; height:104px; }
+    #stick{ left:30px; top:30px; }
+    .tbtn{ width:48px; height:48px; font-size:10px; }
+    #btn-fire{ bottom:146px; right:14px; } #btn-jump{ bottom:146px; right:70px; } #btn-enter{ bottom:146px; right:126px; }
+    #btn-use{ bottom:200px; left:160px; right:auto; } #btn-drift{ bottom:200px; left:216px; right:auto; }
+  }
 </style>
 </head>
 <body>

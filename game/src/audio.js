@@ -16,7 +16,7 @@ function ensureCtx() {
     if (!AC) return false;
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
-    musicGain = ctx.createGain(); musicGain.gain.value = 0.34; musicGain.connect(master);
+    musicGain = ctx.createGain(); musicGain.gain.value = 0.38; musicGain.connect(master); // a touch louder: phone speakers
     sfxGain = ctx.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(master);
     // engine: two detuned saws through a lowpass, pitch follows speed
     engineOsc = ctx.createOscillator(); engineOsc.type = 'sawtooth'; engineOsc.frequency.value = 55;
@@ -192,4 +192,4 @@ export function radioNext() {
   SFX.radioSwitch();
 }
 export function radioStationName() { return RADIO[G.radioIdx].name + ' — ' + RADIO[G.radioIdx].tracks[G.trackIdx]; }
-export function setChaseMusic(on) { G.chaseMusic = on; if (musicGain) musicGain.gain.setTargetAtTime(on ? 0.46 : 0.34, ctx.currentTime, 0.4); }
+export function setChaseMusic(on) { G.chaseMusic = on; if (musicGain) musicGain.gain.setTargetAtTime(on ? 0.5 : 0.38, ctx.currentTime, 0.4); }

@@ -50,11 +50,11 @@ export function initInput() {
   const joyMove = (e) => {
     for (const t of e.changedTouches) {
       if (t.identifier !== joyId) continue;
-      let dx = (t.clientX - joyCx) / 45, dy = (t.clientY - joyCy) / 45;
+      let dx = (t.clientX - joyCx) / 40, dy = (t.clientY - joyCy) / 40; // 104px joystick: 40px travel radius
       const m = Math.hypot(dx, dy);
       if (m > 1) { dx /= m; dy /= m; }
       G.touch.x = dx; G.touch.y = dy;
-      stick.style.transform = `translate(${dx * 34}px, ${dy * 34}px)`;
+      stick.style.transform = `translate(${dx * 30}px, ${dy * 30}px)`;
     }
     e.preventDefault();
   };
@@ -76,7 +76,11 @@ export function initInput() {
   bindBtn('btn-use', () => handleInteract());
   bindBtn('btn-drift', () => { G.touch.drift = true; }, () => { G.touch.drift = false; });
   // show touch controls on touch devices
-  if ('ontouchstart' in window) document.getElementById('touch').style.display = 'block';
+  if ('ontouchstart' in window) {
+    const touch = document.getElementById('touch');
+    touch.style.display = 'block';
+    touch.style.touchAction = 'none'; // no scroll/zoom gestures stealing the buttons
+  }
   // drag on the right half of the screen orbits the camera on touch
   let camId = null, cx0 = 0, cy0 = 0;
   cv.addEventListener('touchstart', (e) => {

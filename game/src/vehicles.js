@@ -41,13 +41,13 @@ function glassShape(kind) {
 const glassMat = new THREE.MeshStandardMaterial({ color: 0x0e1a26, roughness: 0.12, metalness: 0.85 });
 const tireMat = new THREE.MeshStandardMaterial({ color: 0x14161a, roughness: 0.95 });
 const hubMat = new THREE.MeshStandardMaterial({ color: 0xc8ccd4, roughness: 0.25, metalness: 0.9 });
-const lightMatF = new THREE.MeshStandardMaterial({ color: 0xfff6c8, emissive: 0xffedb0, emissiveIntensity: 0.9 });
-const lightMatR = new THREE.MeshStandardMaterial({ color: 0x881111, emissive: 0xff2222, emissiveIntensity: 0.7 });
+const lightMatF = new THREE.MeshStandardMaterial({ color: 0xfff6c8, emissive: 0xffedb0, emissiveIntensity: 1.4 });
+const lightMatR = new THREE.MeshStandardMaterial({ color: 0x881111, emissive: 0xff2222, emissiveIntensity: 1.1 });
 
 export function makeCarMesh(kind, color) {
   const def = CAR_KINDS[kind];
   const g = new THREE.Group();
-  const paint = new THREE.MeshStandardMaterial({ color, roughness: 0.32, metalness: 0.55 });
+  const paint = new THREE.MeshStandardMaterial({ color, roughness: 0.26, metalness: 0.65 }); // glossy showroom paint, reads at night
   const bodyGeo = new THREE.ExtrudeGeometry(bodyShape(kind), { depth: def.w - 0.24, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 });
   bodyGeo.translate(0, 0, -(def.w - 0.24) / 2);
   const body = new THREE.Mesh(bodyGeo, kind === 'police' ? new THREE.MeshStandardMaterial({ color: 0xf2f4f6, roughness: 0.3, metalness: 0.5 }) : paint);
@@ -92,9 +92,9 @@ export function makeCarMesh(kind, color) {
     const trunk = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, def.w - 0.3), black); trunk.position.set(3.9, 0.82, 0); g.add(trunk);
     const bar = new THREE.Group();
     const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 1.3), black); bar.add(barBase);
-    const red = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.55), new THREE.MeshStandardMaterial({ color: 0xcc0000, emissive: 0xff0000, emissiveIntensity: 2 }));
+    const red = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.55), new THREE.MeshStandardMaterial({ color: 0xcc0000, emissive: 0xff0000, emissiveIntensity: 3.5 }));
     red.position.z = -0.32; bar.add(red);
-    const blue = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.55), new THREE.MeshStandardMaterial({ color: 0x0033cc, emissive: 0x2266ff, emissiveIntensity: 2 }));
+    const blue = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.55), new THREE.MeshStandardMaterial({ color: 0x0033cc, emissive: 0x2266ff, emissiveIntensity: 3.5 }));
     blue.position.z = 0.32; bar.add(blue);
     bar.position.set(2.3, 1.44, 0); g.add(bar);
     lightBar = { red: red.material, blue: blue.material };

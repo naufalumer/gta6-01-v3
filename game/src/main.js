@@ -39,8 +39,8 @@ const city = buildCity();
 // headlights: two spotlights that follow the player's car at dusk/night
 let headL = null, headR = null;
 function initHeadlights() {
-  headL = new THREE.SpotLight(0xfff2cc, 0, 70, 0.55, 0.5, 1.5);
-  headR = new THREE.SpotLight(0xfff2cc, 0, 70, 0.55, 0.5, 1.5);
+  headL = new THREE.SpotLight(0xfff2cc, 0, 90, 0.55, 0.6, 1.5);
+  headR = new THREE.SpotLight(0xfff2cc, 0, 90, 0.55, 0.6, 1.5);
   G.scene.add(headL, headL.target, headR, headR.target);
 }
 initHeadlights();
@@ -51,7 +51,7 @@ function updateHeadlights() {
   const car = G.vehicle, m = car.mesh.position;
   const fx = Math.sin(car.heading), fz = Math.cos(car.heading);
   const lx = Math.cos(car.heading), lz = -Math.sin(car.heading);
-  headL.intensity = 120; headR.intensity = 120;
+  headL.intensity = 200; headR.intensity = 200; // strong pools of light on the road
   headL.position.set(m.x + fx * 2.2 + lx * 0.7, 1, m.z + fz * 2.2 + lz * 0.7);
   headR.position.set(m.x + fx * 2.2 - lx * 0.7, 1, m.z + fz * 2.2 - lz * 0.7);
   headL.target.position.set(m.x + fx * 28, 0, m.z + fz * 28);

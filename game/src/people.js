@@ -7,7 +7,7 @@ import { G, CFG, clamp, lerp, angLerp, dist2, mulberry, pick } from './config.js
 import { SFX } from './audio.js';
 
 const SKINS = [0xe8b98a, 0xc98d5f, 0x8a5a35, 0xf0c8a0, 0x6e4426, 0xd8a06a];
-const SHIRTS = [0xff2e88, 0x22d3ee, 0xffb020, 0x37e08b, 0xf2f5ff, 0x3aa7ff, 0xb78cff, 0xff6a3d, 0x2e7fc2, 0x8a5a35];
+const SHIRTS = [0xff2e88, 0x22d3ee, 0xffb020, 0x37e08b, 0xf2f5ff, 0x3aa7ff, 0xb78cff, 0xff6a3d, 0x2e7fc2, 0x8a5a35, 0xffd23f, 0xffffff, 0xff8ab5]; // hi-vis yellow + white added: peds read at dusk/night
 const PANTS = [0x22262f, 0x3a4a6a, 0x5a4a3a, 0x2c3242, 0x6a3a4a];
 const HAIRS = [0x14100c, 0x3a2410, 0x6a6a6a, 0xd8b13a, 0x8a2a2a];
 
@@ -51,7 +51,7 @@ export function makePersonMesh(opts = {}) {
     const pivot = new THREE.Group(); pivot.position.set(s * 0.12, h * 0.42, 0);
     const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.075, 0.42, 8), pantsMat);
     leg.position.y = -0.21; leg.castShadow = true; pivot.add(leg);
-    const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ color: 0x14161a, roughness: 0.4 }));
+    const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ color: 0x3a3f4a, roughness: 0.4 }));
     shoe.scale.set(1, 0.6, 1.7); shoe.position.set(0, -0.42, 0.05); pivot.add(shoe);
     g.add(pivot); legs.push(pivot);
   }

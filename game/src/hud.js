@@ -78,7 +78,12 @@ function drawMapCanvas(cv) {
   c.fillStyle = '#10141f'; c.fillRect(0, 0, W, H);
   c.fillStyle = '#e8d5a2'; c.fillRect(sx(-320), sz(210), W, H - sz(210));
   c.fillStyle = '#1d6f8e'; c.fillRect(sx(-320), sz(320), W, 20);
-  c.strokeStyle = '#3a3f4a'; c.lineWidth = 5;
+  c.strokeStyle = '#5a6274'; c.lineWidth = 7; // bright roads so the minimap reads on a phone
+  for (let g = -270; g <= 270; g += 60) {
+    c.beginPath(); c.moveTo(sx(g), 0); c.lineTo(sx(g), H); c.stroke();
+    c.beginPath(); c.moveTo(0, sz(g)); c.lineTo(W, sz(g)); c.stroke();
+  }
+  c.strokeStyle = '#f5c542'; c.lineWidth = 1.5; // amber centre dashes
   for (let g = -270; g <= 270; g += 60) {
     c.beginPath(); c.moveTo(sx(g), 0); c.lineTo(sx(g), H); c.stroke();
     c.beginPath(); c.moveTo(0, sz(g)); c.lineTo(W, sz(g)); c.stroke();
@@ -118,7 +123,9 @@ export function updateHud(dt) {
   $('wanted').className = 'wanted' + (G.wanted >= 3 ? ' hot' : '');
   const rl = respectLevel();
   $('respect').textContent = `Lv ${rl} ${RESPECT_TITLES[rl]}`;
-  const near = G.patrolCars.slice(0, 4).map((c) => {
+  // patrol list: short landscape screens show 2 rows so the status panel stays compact
+  const maxPatrol = window.innerHeight < 500 ? 2 : 4;
+  const near = G.patrolCars.slice(0, maxPatrol).map((c) => {
     const d = Math.round(Math.sqrt((c.mesh.position.x - G.player.x) ** 2 + (c.mesh.position.z - G.player.z) ** 2));
     const t = G.wanted >= 4 ? 'PIT' : G.wanted >= 3 ? 'ROADBLOCK' : d < 20 ? 'RAMMING' : 'PURSUE';
     return `<div>ABPD-${G.patrolCars.indexOf(c) + 1} · ${d}m · ${t}</div>`;

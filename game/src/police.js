@@ -51,7 +51,10 @@ function spawnPoliceHeli() {
   const mesh = makeHeliMesh(true);
   mesh.position.set(G.player.x + 60, 45, G.player.z + 60);
   G.scene.add(mesh);
-  G.policeHeli = { mesh, heading: 0, searchT: 0 };
+  // the heli's searchlight: a real spotlight cone that tracks the player at night
+  const spot = new THREE.SpotLight(0xfff2cc, 0, 130, 0.32, 0.5, 1.2);
+  G.scene.add(spot, spot.target);
+  G.policeHeli = { mesh, heading: 0, searchT: 0, spot };
 }
 export function spawnPatrolAt(x, z) { return spawnPatrolCar(x, z); }
 export function spawnHeliAt(x, z) { spawnPoliceHeli(); if (G.policeHeli) G.policeHeli.mesh.position.set(x, 45, z); return G.policeHeli; }
@@ -137,8 +140,8 @@ export function updatePolice(dt) {
     const lb = m.userData.lightBar;
     if (lb) {
       const on = Math.floor(G.time * 6 + (car === G.patrolCars[0] ? 0 : 1)) % 2 === 0;
-      lb.red.emissiveIntensity = on ? 3 : 0.2;
-      lb.blue.emissiveIntensity = on ? 0.2 : 3;
+      lb.red.emissiveIntensity = on ? 4.5 : 0.3;
+      lb.blue.emissiveIntensity = on ? 0.3 : 4.5;
     }
     if (d < 9 && G.vehicle) {
       G.vehicle.speed *= (1 - dt * 0.4);
@@ -155,6 +158,11 @@ export function updatePolice(dt) {
     h.mesh.position.y = 42 + Math.sin(h.searchT * 0.8) * 3;
     h.mesh.userData.rotor.rotation.y += dt * 26;
     h.mesh.rotation.y = Math.atan2(p.x - h.mesh.position.x, p.z - h.mesh.position.z);
+    // searchlight cone follows the player, on at dusk/night
+    const hr = (G.time / 3600) % 24, dark = hr >= 16 || hr < 6;
+    h.spot.intensity = dark ? 250 : 0;
+    h.spot.position.set(h.mesh.position.x, h.mesh.position.y - 1, h.mesh.position.z);
+    h.spot.target.position.set(p.x, 0, p.z);
     G.heat = Math.min(100, G.heat + dt * 1.2);
     if (Math.random() < dt * 3) SFX.siren(0.25);
   }

@@ -7,6 +7,14 @@ export const CFG = {
   nitroBoost: 1.55, driftBonus: 25,
   dayLength: 240, // seconds per full day cycle
   startCash: 250,
+  // visual-clarity tuning (revision round, Nov 24): bright readable roads, strong
+  // markings, lit windows and a night that stays readable on a phone screen.
+  ground: {
+    asphalt: '#414754', road: '#333947', dash: '#f5c542',
+    edge: 'rgba(255,255,255,0.65)', sidewalk: '#596073', curb: '#8a93a8',
+    crosswalk: 'rgba(255,255,255,0.78)',
+  },
+  nightLift: { hemi: 1.05, moon: 1.25, exp: 1.45 },
 };
 // --- helpers ---------------------------------------------------------------
 export const clamp = (v, a, b) => v < a ? a : v > b ? b : v;

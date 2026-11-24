@@ -1,5 +1,5 @@
 {
-  "passed": 42,
+  "passed": 51,
   "failed": 0,
   "results": [
     {
@@ -10,7 +10,7 @@
     {
       "name": "three.js scene has objects",
       "ok": true,
-      "detail": "1129"
+      "detail": "1522"
     },
     {
       "name": "player created",
@@ -175,7 +175,7 @@
     {
       "name": "heli climbs",
       "ok": true,
-      "detail": "alt 8.8"
+      "detail": "alt 11.0"
     },
     {
       "name": "casino spin resolves",
@@ -203,6 +203,51 @@
       "detail": ""
     },
     {
+      "name": "road-marking probe ran",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "amber dashes read against asphalt (diff > 60)",
+      "ok": true,
+      "detail": "dash 196 vs road 57 (diff 140)"
+    },
+    {
+      "name": "sidewalks read against the road (diff > 10)",
+      "ok": true,
+      "detail": "sidewalk 101 vs road 57 (diff 44)"
+    },
+    {
+      "name": "road strip reads against base asphalt (diff > 5)",
+      "ok": true,
+      "detail": "road 57 vs base 71 (diff 14)"
+    },
+    {
+      "name": "minimap visible at 844x390 (not cut off)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "touch controls visible at 844x390",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no HUD panel overlaps at 844x390",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no HUD element leaves the 844x390 viewport",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no horizontal overflow at 844x390",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "zero console/page errors during the whole run",
       "ok": true,
       "detail": ""
@@ -213,5 +258,5 @@
       "detail": ""
     }
   ],
-  "at": "2026-11-24T04:37:40.159Z"
+  "at": "2026-11-24T05:12:28.389Z"
 }

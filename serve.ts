@@ -49,6 +49,7 @@ createServer((request, response) => {
     return;
   }
   if (pathname.endsWith('/')) pathname += 'index.html';
+  if (pathname === '/health') { response.writeHead(200, { 'content-type': 'text/plain' }).end('ok'); return; }
   const file = resolve(join(root, normalize(pathname)));
   if (file !== root && !file.startsWith(root + sep)) {
     response.writeHead(403).end('forbidden');

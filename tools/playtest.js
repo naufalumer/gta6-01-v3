@@ -1,7 +1,8 @@
 // AZURA BAY — Neon Tide: frame-based playtest. Drives the real game in a headless
 // Chrome shell over CDP (Node 22 built-ins only: fetch + WebSocket, no deps) and
 // checks every required system: walk, steal, drive, drift, chase, missions, race,
-// fishing, basketball, jetpack, heli, casino, save/load, HUD sizes, 0 console errors.
+// fishing, basketball, jetpack, heli, casino, save/load, HUD sizes, road-marking
+// visibility probe + phone-landscape HUD-overlap check, 0 console errors.
 // Software rendering is slow, so waits poll for the condition instead of sleeping
 // fixed times, and the page runs in lowfx mode (no shadows, pixel ratio 1).
 // Usage: node tools/playtest.js [--port 8931] [--headless-shell <path>]
@@ -235,6 +236,57 @@ async function main() {
       const overflow = await evalJs(`document.documentElement.scrollWidth > window.innerWidth + 1`);
       check(`HUD fits ${w}x${h}`, !overflow, overflow ? 'horizontal overflow' : '');
     }
+    await send('Emulation.setDeviceMetricsOverride', { width: 800, height: 500, deviceScaleFactor: 1, mobile: false });
+
+    console.log('== clarity: road markings ==');
+    await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?shot=street&seed=20261124&lowfx=1` });
+    await waitFor(`window.__shotReady === true`, 20000);
+    const probe = await evalJs(`(() => {
+      const G = window.__azura.G;
+      const ground = G.scene.children.find(o => o.geometry && o.geometry.type === 'PlaneGeometry' && o.geometry.parameters && o.geometry.parameters.width === 640 && o.geometry.parameters.height === 640);
+      if (!ground || !ground.material.map || !ground.material.map.image) return { error: 'ground texture not found' };
+      const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 1024;
+      const c = cv.getContext('2d'); c.drawImage(ground.material.map.image, 0, 0);
+      const lum = (x, y) => { const d = c.getImageData(x, y, 1, 1).data; return 0.299 * d[0] + 0.587 * d[1] + 0.114 * d[2]; };
+      // texture px = (world + 320) * 1.6; roads sit at world -270+60k (..., -30, 30, 90, ...),
+      // so the road at world x=30 is texture x=560 and its amber dash centre is (560, 340);
+      // (512, 352) is the unmarked gap between blocks = base asphalt; the road sample
+      // sits at y=390, in a dash gap (dash segments are [d, d+22] for d = 0, 36, ..., 396)
+      const dash = lum(560, 340), road = lum(560, 390), walk = lum(532, 352), base = lum(512, 352);
+      return { dash: Math.round(dash), road: Math.round(road), walk: Math.round(walk), base: Math.round(base), dashRoad: Math.round(dash - road), walkRoad: Math.round(walk - road), roadBase: Math.round(Math.abs(road - base)) };
+    })()`);
+    check('road-marking probe ran', !probe.error, probe.error || '');
+    check('amber dashes read against asphalt (diff > 60)', probe.dashRoad > 60, `dash ${probe.dash} vs road ${probe.road} (diff ${probe.dashRoad})`);
+    check('sidewalks read against the road (diff > 10)', probe.walkRoad > 10, `sidewalk ${probe.walk} vs road ${probe.road} (diff ${probe.walkRoad})`);
+    check('road strip reads against base asphalt (diff > 5)', probe.roadBase > 5, `road ${probe.road} vs base ${probe.base} (diff ${probe.roadBase})`);
+
+    console.log('== clarity: phone HUD 844x390 ==');
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 2, mobile: true });
+    await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?seed=20261124&lowfx=1` });
+    await waitFor(`window.__azura`, 20000);
+    await sleep(1000);
+    await evalJs(`document.getElementById('btn-play').click()`);
+    await sleep(800);
+    const hud = await evalJs(`(() => {
+      const vis = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); if (cs.display === 'none' || r.width === 0) return null; return { x: r.left, y: r.top, w: r.width, h: r.height, right: r.right, bottom: r.bottom }; };
+      const els = {};
+      for (const id of ['mission-card', 'radio', 'status', 'minimap-wrap', 'veh', 'joy', 'btn-fire', 'btn-jump', 'btn-enter', 'btn-use', 'btn-drift']) els[id] = vis(document.getElementById(id));
+      const overlap = (a, b) => a && b && a.x < b.right && b.x < a.right && a.y < b.bottom && b.y < a.bottom;
+      const bad = [];
+      for (const [a, b] of [['radio', 'mission-card'], ['radio', 'status'], ['radio', 'veh'], ['radio', 'minimap-wrap'], ['joy', 'mission-card'], ['joy', 'status'], ['joy', 'veh'], ['btn-fire', 'status'], ['btn-fire', 'veh'], ['btn-jump', 'status'], ['btn-jump', 'veh'], ['btn-enter', 'status'], ['btn-enter', 'veh'], ['btn-use', 'mission-card'], ['btn-drift', 'mission-card'], ['mission-card', 'status'], ['status', 'veh'], ['minimap-wrap', 'veh']]) {
+        if (overlap(els[a], els[b])) bad.push(a + ' x ' + b);
+      }
+      const out = [];
+      for (const [id, r] of Object.entries(els)) if (r && (r.right > 844 || r.bottom > 390 || r.x < 0 || r.y < 0)) out.push(id);
+      return { minimapVisible: !!els['minimap-wrap'], touchVisible: !!els['joy'] && !!els['btn-fire'], bad, out, vw: window.innerWidth, overflow: document.documentElement.scrollWidth > window.innerWidth + 1 };
+    })()`);
+    check('minimap visible at 844x390 (not cut off)', hud.minimapVisible, hud.minimapVisible ? '' : 'minimap-wrap hidden');
+    check('touch controls visible at 844x390', hud.touchVisible, hud.touchVisible ? '' : 'joystick/buttons hidden');
+    check('no HUD panel overlaps at 844x390', hud.bad.length === 0, hud.bad.join(', '));
+    check('no HUD element leaves the 844x390 viewport', hud.out.length === 0, hud.out.join(', '));
+    check('no horizontal overflow at 844x390', !hud.overflow);
+    await send('Emulation.setTouchEmulationEnabled', { enabled: false });
     await send('Emulation.setDeviceMetricsOverride', { width: 800, height: 500, deviceScaleFactor: 1, mobile: false });
 
     console.log('== errors ==');

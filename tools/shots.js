@@ -1,7 +1,10 @@
 // AZURA BAY — Neon Tide: dossier screenshots. Loads each staged scene (?shot=) in a
 // headless Chrome shell over CDP (Node 22 built-ins only) and captures 4 JPEGs into
 // screenshots/: 1-chase, 2-street, 3-race, 4-title. Each must stay under 256 KiB —
-// the quality drops if a shot is too big. Usage: node tools/shots.js
+// the quality drops if a shot is too big. After the 4, it also captures a
+// phone-landscape (844x390) verification frame of the street scene to
+// /tmp/phone-landscape.jpg — NOT a dossier shot, only for visual HUD review.
+// Usage: node tools/shots.js
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -62,6 +65,18 @@ async function main() {
         quality -= 18;
       }
     }
+    // phone-landscape verification frame (844x390, touch on): the street scene as
+    // Naufal's iPhone sees it — road markings, HUD spacing, minimap visibility
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 2, mobile: true });
+    await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?shot=street&seed=20261124` });
+    let phoneReady = false;
+    for (let i = 0; i < 40; i++) { await sleep(500); if (await evalJs(`window.__shotReady === true`)) { phoneReady = true; break; } }
+    if (!phoneReady) console.log('  WARN phone: __shotReady never set, capturing anyway');
+    await sleep(1200);
+    const phoneCap = await send('Page.captureScreenshot', { format: 'jpeg', quality: 82 });
+    writeFileSync('/tmp/phone-landscape.jpg', Buffer.from(phoneCap.result.data, 'base64'));
+    console.log(`  phone-landscape.jpg: ${statSync('/tmp/phone-landscape.jpg').size} B (844x390 verification, /tmp only)`);
     ws.close();
   } finally {
     chrome.kill('SIGKILL');

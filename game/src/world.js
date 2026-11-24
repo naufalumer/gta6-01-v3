@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { G, CFG, DISTRICTS, districtAt, mulberry, pick, clamp, lerp } from './config.js';
 
-let sun, hemi, moon, stars, water, neonMats = [], lampMats = [], winMats = [];
+let sun, hemi, moon, stars, water, neonMats = [], lampMats = [], winMats = [], poolMats = [];
 let phaseName = 'morning';
 
 function canvasTex(w, h, draw) {
@@ -35,15 +35,18 @@ function windowTex(litRatio, tint) {
 }
 function groundTexture() {
   const S = 1024, half = CFG.cityHalf + 20, scale = S / (half * 2);
+  const GR = CFG.ground;
   return canvasTex(S, S, (c) => {
-    c.fillStyle = '#2b2f3a'; c.fillRect(0, 0, S, S); // asphalt base
+    c.fillStyle = GR.asphalt; c.fillRect(0, 0, S, S); // bright asphalt base
     const rng = mulberry(99);
-    for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(255,255,255,${rng() * 0.03})`; c.fillRect(rng() * S, rng() * S, 3, 3); }
-    // blocks: concrete with sidewalk edge
+    for (let i = 0; i < 1200; i++) { c.fillStyle = `rgba(255,255,255,${rng() * 0.05})`; c.fillRect(rng() * S, rng() * S, 3, 3); }
+    for (let i = 0; i < 500; i++) { c.fillStyle = `rgba(0,0,0,${rng() * 0.06})`; c.fillRect(rng() * S, rng() * S, 4, 4); }
+    // blocks: lighter concrete sidewalks with a strong curb edge
     for (let bx = -270; bx <= 270; bx += 60) for (let bz = -270; bz <= 270; bz += 60) {
       const px = (bx - 23 + half) * scale, pz = (bz - 23 + half) * scale, pw = 46 * scale;
-      c.fillStyle = '#3a3f4a'; c.fillRect(px, pz, pw, pw);
-      c.strokeStyle = '#4a505e'; c.lineWidth = 3; c.strokeRect(px + 4, pz + 4, pw - 8, pw - 8);
+      c.fillStyle = GR.sidewalk; c.fillRect(px, pz, pw, pw);
+      c.strokeStyle = GR.curb; c.lineWidth = 4; c.strokeRect(px + 4, pz + 4, pw - 8, pw - 8);
+      c.strokeStyle = 'rgba(255,255,255,0.18)'; c.lineWidth = 2; c.strokeRect(px + 8, pz + 8, pw - 16, pw - 16);
     }
     // beach + water at the south edge (z > 210)
     const beachY = (210 + half) * scale;
@@ -52,31 +55,46 @@ function groundTexture() {
     c.fillStyle = grad; c.fillRect(0, beachY, S, S - beachY);
     c.fillStyle = 'rgba(255,255,255,0.35)';
     for (let i = 0; i < 40; i++) c.fillRect(rng() * S, beachY + 30 + rng() * (S - beachY - 40), 26, 3);
-    // roads: darker strips + dashed centre lines
-    c.fillStyle = '#23262f';
+    // roads: distinct darker strips, white edge lines, thick amber dashes
+    c.fillStyle = GR.road;
     for (let g = -270; g <= 270; g += 60) {
       const p = (g - 7 + half) * scale, w = 14 * scale;
       c.fillRect(p, 0, w, S); c.fillRect(0, p, S, w);
     }
-    c.fillStyle = '#d8b13a';
+    // tire-wear bands: two darker lanes so the road reads as driven-on asphalt
+    c.fillStyle = 'rgba(0,0,0,0.16)';
     for (let g = -270; g <= 270; g += 60) {
       const p = (g + half) * scale;
-      for (let d = 0; d < S; d += 34) { c.fillRect(p - 2, d, 4, 18); c.fillRect(d, p - 2, 18, 4); }
+      c.fillRect(p - 5.5, 0, 3, S); c.fillRect(p + 2.5, 0, 3, S);
+      c.fillRect(0, p - 5.5, S, 3); c.fillRect(0, p + 2.5, S, 3);
     }
-    // crosswalks
-    c.fillStyle = 'rgba(255,255,255,0.55)';
+    // white edge lines on both sides of every road
+    c.fillStyle = GR.edge;
+    for (let g = -270; g <= 270; g += 60) {
+      const p0 = (g - 7 + half) * scale, p1 = (g + 7 + half) * scale;
+      c.fillRect(p0 + 1, 0, 2, S); c.fillRect(p1 - 3, 0, 2, S);
+      c.fillRect(0, p0 + 1, S, 2); c.fillRect(0, p1 - 3, S, 2);
+    }
+    // thick amber dashed centre lines
+    c.fillStyle = GR.dash;
+    for (let g = -270; g <= 270; g += 60) {
+      const p = (g + half) * scale;
+      for (let d = 0; d < S; d += 36) { c.fillRect(p - 3, d, 6, 22); c.fillRect(d, p - 3, 22, 6); }
+    }
+    // crosswalks: broad bright stripes
+    c.fillStyle = GR.crosswalk;
     for (let gx = -270; gx <= 270; gx += 60) for (let gz = -270; gz <= 270; gz += 60) {
       const px = (gx - 7 + half) * scale, pz = (gz - 7 + half) * scale;
-      for (let i = 0; i < 5; i++) { c.fillRect(px + i * 6, pz - 12, 3, 24); c.fillRect(px - 12, pz + i * 6, 24, 3); }
+      for (let i = 0; i < 5; i++) { c.fillRect(px + i * 6, pz - 12, 4, 24); c.fillRect(px - 12, pz + i * 6, 24, 4); }
     }
   });
 }
 
 const PHASES = [
-  { name: 'morning', t0: 6, t1: 10, sun: 0xffe3b0, sunI: 2.4, hemiSky: 0x9fc8ff, hemiGnd: 0x8a7a5a, hemiI: 0.75, sky: 0x9fc6ee, fog: 0xa8c4e0, neon: 0.25, exp: 1.05 },
-  { name: 'noon', t0: 10, t1: 16, sun: 0xfff3d6, sunI: 3.1, hemiSky: 0xbfe0ff, hemiGnd: 0x9a8a6a, hemiI: 0.9, sky: 0x7fb8f0, fog: 0x9cc0e8, neon: 0.15, exp: 1.08 },
-  { name: 'dusk', t0: 16, t1: 20, sun: 0xff9a5c, sunI: 2.2, hemiSky: 0xf0a8a0, hemiGnd: 0x6a5560, hemiI: 0.85, sky: 0xff8fa8, fog: 0xc08a90, neon: 0.9, exp: 1.22 },
-  { name: 'night', t0: 20, t1: 30, sun: 0x8fb0ff, sunI: 0.7, hemiSky: 0x4a5a8a, hemiGnd: 0x2a2830, hemiI: 0.75, sky: 0x0b1026, fog: 0x1c2640, neon: 1.6, exp: 1.3 },
+  { name: 'morning', t0: 6, t1: 10, sun: 0xffe3b0, sunI: 2.4, hemiSky: 0x9fc8ff, hemiGnd: 0x8a7a5a, hemiI: 0.75, sky: 0x9fc6ee, fog: 0xa8c4e0, neon: 0.25, exp: 1.05, pool: 0.0 },
+  { name: 'noon', t0: 10, t1: 16, sun: 0xfff3d6, sunI: 3.1, hemiSky: 0xbfe0ff, hemiGnd: 0x9a8a6a, hemiI: 0.9, sky: 0x7fb8f0, fog: 0x9cc0e8, neon: 0.15, exp: 1.12, pool: 0.0 },
+  { name: 'dusk', t0: 16, t1: 20, sun: 0xff9a5c, sunI: 2.2, hemiSky: 0xf0a8a0, hemiGnd: 0x6a5560, hemiI: 0.95, sky: 0xff8fa8, fog: 0xc08a90, neon: 0.9, exp: 1.3, pool: 0.35 },
+  { name: 'night', t0: 20, t1: 30, sun: 0x8fb0ff, sunI: 0.7, hemiSky: 0x6a7ab5, hemiGnd: 0x4a4450, hemiI: CFG.nightLift.hemi, sky: 0x1a2444, fog: 0x2a3555, neon: 1.6, exp: CFG.nightLift.exp, pool: 0.55 },
 ];
 function phaseFor(hour) {
   for (const p of PHASES) if (hour >= p.t0 && hour < p.t1) return p;
@@ -86,7 +104,7 @@ function phaseFor(hour) {
 export function buildCity() {
   const scene = G.scene;
   const rng = mulberry(G.seed);
-  neonMats = []; lampMats = []; winMats = [];
+  neonMats = []; lampMats = []; winMats = []; poolMats = [];
   // renderer tone
   G.renderer.toneMapping = THREE.ACESFilmicToneMapping;
   G.renderer.toneMappingExposure = 1.08;
@@ -120,16 +138,23 @@ export function buildCity() {
   const winTexA = windowTex(0.55, '#ffd98a'), winTexB = windowTex(0.4, '#9fd8ff'), winTexC = windowTex(0.7, '#ffb0d8');
   const winMatsBase = [winTexA, winTexB, winTexC].map(t => new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.12, roughness: 0.35, metalness: 0.25 }));
   winMats = winMatsBase;
-  const wallCols = [0x8a7f72, 0x6e7f92, 0x9a8a7a, 0x7a6a8a, 0x5f7285, 0xb08a6a, 0x74604f];
+  const wallCols = [0xa89880, 0x7f9ab5, 0xc08a7a, 0x8ab5a0, 0x9a8fc0, 0xd0a05a, 0x8a6a5f, 0x5f8a9a, 0xb5a06a, 0x7a9a7a];
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
   function addBuilding(x, z, w, d, h, district) {
-    const wall = new THREE.MeshStandardMaterial({ color: pick(rng, wallCols), roughness: 0.82, metalness: 0.08 });
+    const wall = new THREE.MeshStandardMaterial({ color: pick(rng, wallCols), roughness: 0.75, metalness: 0.1 });
     const b = new THREE.Mesh(boxGeo, wall);
     b.scale.set(w, h, d); b.position.set(x, h / 2, z);
     b.castShadow = true; b.receiveShadow = true; scene.add(b);
+    // lit windows on all four faces so the facade reads from any angle
     const win = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.96, h * 0.92), pick(rng, winMatsBase));
     win.position.set(x, h / 2, z + d / 2 + 0.06); scene.add(win);
     const win2 = win.clone(); win2.rotation.y = Math.PI; win2.position.set(x, h / 2, z - d / 2 - 0.06); scene.add(win2);
+    const win3 = new THREE.Mesh(new THREE.PlaneGeometry(d * 0.96, h * 0.92), pick(rng, winMatsBase));
+    win3.rotation.y = Math.PI / 2; win3.position.set(x + w / 2 + 0.06, h / 2, z); scene.add(win3);
+    const win4 = win3.clone(); win4.rotation.y = -Math.PI / 2; win4.position.set(x - w / 2 - 0.06, h / 2, z); scene.add(win4);
+    // rooftop trim band: a bright parapet edge that reads the building silhouette at night
+    const trim = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 0.6, metalness: 0.15 }));
+    trim.scale.set(w + 0.5, 0.6, d + 0.5); trim.position.set(x, h + 0.25, z); scene.add(trim);
     // rooftop detail: AC box + water tank
     const ac = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({ color: 0x9aa2ad, roughness: 0.6, metalness: 0.5 }));
     ac.scale.set(2.4, 1.1, 2.4); ac.position.set(x + w * 0.2, h + 0.55, z); ac.castShadow = true; scene.add(ac);
@@ -166,16 +191,25 @@ export function buildCity() {
     s.position.set(Math.sin(a) * 52, 9 + (i % 3) * 7, Math.cos(a) * 52);
     s.lookAt(0, s.position.y, 0); scene.add(s);
   }
-  // streetlights
+  // streetlights + the warm pool of light each one throws on the road
   const poleMat = new THREE.MeshStandardMaterial({ color: 0x2c3242, roughness: 0.5, metalness: 0.7 });
   const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff2c0, emissive: 0xffdf80, emissiveIntensity: 0.15 });
   lampMats.push(lampMat);
+  const poolTex = canvasTex(128, 128, (c) => {
+    const g = c.createRadialGradient(64, 64, 4, 64, 64, 62);
+    g.addColorStop(0, 'rgba(255,224,150,0.95)'); g.addColorStop(0.5, 'rgba(255,210,120,0.4)'); g.addColorStop(1, 'rgba(255,200,100,0)');
+    c.fillStyle = g; c.fillRect(0, 0, 128, 128);
+  });
   for (let gx = -270; gx <= 270; gx += 60) for (let gz = -270; gz <= 270; gz += 60) {
     if (gz > 200) continue;
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 7, 6), poleMat);
     pole.position.set(gx + 8, 3.5, gz + 8); scene.add(pole);
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), lampMat);
     lamp.position.set(gx + 8, 7.1, gz + 8); scene.add(lamp);
+    const poolMat = new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+    poolMats.push(poolMat);
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(7, 20), poolMat);
+    pool.rotation.x = -Math.PI / 2; pool.position.set(gx + 8, 0.06, gz + 8); scene.add(pool);
   }
   // palm trees along the beach road
   const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.9 });
@@ -261,15 +295,16 @@ export function applyPhase() {
   sun.position.set(Math.cos(sunAngle) * 220, Math.sin(sunAngle) * 190 + 20, 80);
   sun.color.setHex(p.sun); sun.intensity = p.sunI;
   sun.visible = !isNight;
-  moon.intensity = isNight ? 0.85 : 0;
+  moon.intensity = isNight ? CFG.nightLift.moon : 0;
   hemi.color.setHex(p.hemiSky); hemi.groundColor.setHex(p.hemiGnd); hemi.intensity = p.hemiI;
   G.scene.background.setHex(p.sky);
   G.scene.fog.color.setHex(p.fog);
   G.renderer.toneMappingExposure = p.exp;
   stars.material.opacity = isNight ? 0.9 : p.name === 'dusk' ? 0.25 : 0;
-  for (const m of winMats) m.emissiveIntensity = isNight ? 1.5 : p.name === 'dusk' ? 0.9 : 0.12;
+  for (const m of winMats) m.emissiveIntensity = isNight ? 1.5 : p.name === 'dusk' ? 1.1 : 0.12;
   for (const m of neonMats) m.opacity = p.name === 'night' ? 1 : p.name === 'dusk' ? 0.95 : 0.55;
   for (const m of lampMats) m.emissiveIntensity = isNight ? 2.2 : p.name === 'dusk' ? 1.2 : 0.15;
+  for (const m of poolMats) m.opacity = p.pool; // streetlight pools on the road
 }
 export function updateWorld(dt, t) {
   // water shimmer + neon flicker

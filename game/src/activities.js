@@ -7,7 +7,7 @@ import { SFX } from './audio.js';
 import { makeHeliMesh } from './vehicles.js';
 
 // --- fishing ------------------------------------------------------------------
-export const fish = { state: 'idle', castT: 0, biteT: 0, reel: 0, reelTarget: 0, fishName: '', caught: 0 };
+export const fish = { state: 'idle', castT: 0, biteT: 0, reel: 0, reelTarget: 0, fishName: '', caught: 0, streak: 0 };
 const FISH = [['Bay Snapper', 40], ['Neon Eel', 90], ['Harbor King', 220], ['Rusty Boot', 5], ['Golden Koi', 400]];
 export function updateFishing(dt) {
   const p = G.player;
@@ -26,12 +26,14 @@ export function updateFishing(dt) {
     if (Math.abs(fish.reel - fish.reelTarget) < 0.12) fish.reel = clamp(fish.reel + dt * 0.25, 0, 1);
     if (fish.reel >= 0.98) {
       const [name, val] = FISH[Math.floor(Math.random() * FISH.length)];
-      fish.fishName = name; fish.caught++;
-      G.cash += val;
-      G.dialog = { name: 'FISHING', text: `Caught a ${name}! Sold for $${val}.`, t: 4 };
+      fish.fishName = name; fish.caught++; fish.streak++;
+      const bonus = (fish.streak - 1) * 5; // streak bonus: every catch in a row pays +$5 more
+      G.cash += val + bonus;
+      G.dialog = { name: 'FISHING', text: `Caught a ${name}! Sold for $${val}${bonus ? ` + $${bonus} streak bonus` : ''}.`, t: 4 };
       SFX.mission(); fish.state = 'idle';
     } else if (fish.reel <= 0.02 && fish.castT > 6) {
       G.dialog = { name: 'FISHING', text: 'It got away...', t: 3 };
+      fish.streak = 0;
       fish.state = 'idle';
     }
     fish.castT += dt;

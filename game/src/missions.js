@@ -45,11 +45,11 @@ const MISSION_STEPS = [
 let convoyCar = null;
 
 export function initMissions() {
-  const geo = new THREE.CylinderGeometry(2.2, 2.6, 26, 12, 1, true);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xff2e88, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false });
+  const geo = new THREE.CylinderGeometry(2.6, 3.0, 26, 12, 1, true);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xff2e88, transparent: true, opacity: 0.38, side: THREE.DoubleSide, depthWrite: false });
   beacon = new THREE.Mesh(geo, mat); beacon.visible = false; G.scene.add(beacon);
   const ringGeo = new THREE.RingGeometry(2.4, 3.2, 24);
-  beaconRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xff2e88, transparent: true, opacity: 0.7, side: THREE.DoubleSide }));
+  beaconRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xff2e88, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
   beaconRing.rotation.x = -Math.PI / 2; beaconRing.visible = false; G.scene.add(beaconRing);
   const gateGeo = new THREE.TorusGeometry(4.5, 0.28, 8, 22);
   for (const gt of RACE_GATES) {
