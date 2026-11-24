@@ -38,5 +38,5 @@ const dossierText = buildDossier(out, {
   game_path_max_bytes: 1000,
 });
 writeFileSync(join(out, 'dossier.json'), dossierText);
-const dossier = JSON.parse(dossierText);
+const dossier = JSON.parse(new TextDecoder().decode(dossierText));
 console.log(`dossier: ${dossierText.length} bytes, text ${dossier.text_bytes ?? '?'} bytes, ${dossier.files?.length ?? '?'} source files, ${dossier.screenshots?.length ?? '?'} screenshots`);
